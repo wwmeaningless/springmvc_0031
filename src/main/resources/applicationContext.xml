@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+<!--    开启注解扫描-->
+    <context:component-scan base-package="com.ww.mapper"></context:component-scan>
+    <context:component-scan base-package="com.ww.service"></context:component-scan>
+
+
+<!--        导入资源文件-->
+    <context:property-placeholder location="classpath:druid.properties"></context:property-placeholder>
+
+
+<!--   配置 sqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+<!--        配置数据源-->
+        <property name="dataSource" ref="dataSource"></property>
+<!--        配置sqlmapconfig核心配置文件-->
+        <property name="configLocation" value="classpath:SqlMapConfig.xml"></property>
+<!--        注册实体类-->
+        <property name="typeAliasesPackage" value="com.ww.pojo"></property>
+    </bean>
+
+<!--        配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+<!-- 扫描@MapperScan注解-->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.ww.mapper"></property>
+    </bean>
+
+
+
+<!--    配置事务管理器-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+
+<!--配置事务的切面-->
+    <tx:advice id="myadvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="*select*" read-only="true"/>
+            <tx:method name="*find*" read-only="true"/>
+            <tx:method name="*serach*" read-only="true"/>
+            <tx:method name="*get*" read-only="true"/>
+            <tx:method name="*insert*" propagation="REQUIRED"/>
+            <tx:method name="*add*" propagation="REQUIRED"/>
+            <tx:method name="*save*" propagation="REQUIRED"/>
+            <tx:method name="*set*" propagation="REQUIRED"/>
+            <tx:method name="*update*" propagation="REQUIRED"/>
+            <tx:method name="*change*" propagation="REQUIRED"/>
+            <tx:method name="*modify*" propagation="REQUIRED"/>
+            <tx:method name="*delete*" propagation="REQUIRED"/>
+            <tx:method name="*drop*" propagation="REQUIRED"/>
+            <tx:method name="*remove*" propagation="REQUIRED"/>
+            <tx:method name="*clear*" propagation="REQUIRED"/>
+            <tx:method name="*" propagation="SUPPORTS"/>
+        </tx:attributes>
+    </tx:advice>
+
+<!--    切入点表达式和绑定-->
+    <aop:config>
+        <aop:pointcut id="mycut" expression="execution(* com.ww.service.impl.*.*(..))"/>
+        <aop:advisor advice-ref="myadvice" pointcut-ref="mycut"></aop:advisor>
+    </aop:config>
+
+
+
+<!--    使用事务的注解操作-->
+    <tx:annotation-driven transaction-manager="transactionManager" ></tx:annotation-driven>
+</beans>
